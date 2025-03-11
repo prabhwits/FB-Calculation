@@ -1,0 +1,4 @@
+find item which is having custom_group and type item
+item -> extract default selection
+range -> lower and upper
+custom_group -> mapped
