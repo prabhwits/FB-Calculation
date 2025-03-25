@@ -1,4 +1,12 @@
-import TreeNode from "./interface";
+import {TreeNode, CustomGroup} from "./interface";
+
+function getMinMaxById(
+  groups: CustomGroup[],
+  id: string
+): { min: string; max: string } | null {
+  const group = groups.find((g) => g.id.toLowerCase() === id.toLowerCase());
+  return group ? { min: group.config.min, max: group.config.max } : null;
+}
 
 export function getCustomizationId(node: TreeNode): string {
   if (node.is_base_item && node.base_item) {
@@ -120,7 +128,11 @@ export function extractCustomGroups(categories: any) {
   return result;
 }
 
-export function mapCustomItemToTreeNode(items: any[]): TreeNode[] {
+export function mapCustomItemToTreeNode(
+  items: any[],
+  customGroupCategory: any
+): TreeNode[]{
+
   // Filter items that have a tag of type "customization"
   const customItems = items.filter((item) => {
     if (!item.tags || !Array.isArray(item.tags)) return false;
@@ -164,6 +176,7 @@ export function mapCustomItemToTreeNode(items: any[]): TreeNode[] {
 
     // Ensure only unique (customization_id, custom_group_id) pairs are stored
     if (parentId) {
+      const config = getMinMaxById(customGroupCategory, parentId);
       const key = `${item.id}-${parentId}`;
 
       if (!uniqueNodes.has(key)) {
@@ -175,8 +188,8 @@ export function mapCustomItemToTreeNode(items: any[]): TreeNode[] {
             value: parseFloat(item.price?.value || "0"),
             maximum_value: parseFloat(item.price?.maximum_value || "0"),
             config: {
-              min: item.config?.min || 0,
-              max: item.config?.max || 0,
+              min: Number(config?.min) || 0,
+              max: Number(config?.max) || 0,
             },
             default_select: isDefault,
           },
