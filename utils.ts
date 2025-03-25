@@ -240,3 +240,51 @@ export function mapCustomizationsToBaseItems(
 
   return baseItems;
 }
+
+export function calculateDefaultSelectionPrice(items: any) {
+  let totalMin = 0;
+  let totalMax = 0;
+  let arr = [];
+
+  function traverse(item: any) {
+    if (item.is_base_item) {
+      if (item.base_item && item.base_item.default_selection) {
+        totalMin += item.base_item.item_value;
+        totalMax += item.base_item.item_maximum_value;
+      }
+      // console.log("base_item", item, totalMin, totalMax);
+    } else if (item.custom_item && item.custom_item.default_select === true) {
+      totalMin += item.custom_item.value;
+      totalMax += item.custom_item.maximum_value;
+      // console.log("custom_item", item, totalMin, totalMax);
+    }
+
+    if (
+      (item.is_base_item || item.custom_item.default_select) &&
+      item.children &&
+      item.children.length > 0
+    ) {
+      for (const child of item.children) {
+        traverse(child);
+      }
+    }
+    return { totalMin, totalMax };
+  }
+
+  for (const item of items) {
+    totalMin = 0;
+    totalMax = 0;
+
+    const default_select = traverse(item);
+    arr.push({
+      base_item: item.base_item.item_id,
+      default_selection_calculated: {
+        min: default_select?.totalMin,
+        max: default_select?.totalMax,
+      },
+      default_selection_actual: item.base_item.default_selection,
+    });
+  }
+
+  return arr;
+}
